@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga ETL a SQL Server (Web API)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: 0 auto; padding: 30px; background-color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        h1 { color: #007bff; margin-bottom: 30px; }
+        input[type="file"] { display: block; margin: 15px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 90%; }
+        button { padding: 12px 25px; font-size: 18px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; transition: background-color 0.3s; margin-top: 20px; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); border-top: 4px solid #007bff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 10px auto; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .mensaje { margin-top: 20px; padding: 15px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Carga de Datos ETL (Excel a SQL)</h1>
+        <p>Seleccione su archivo Excel (`.xlsx`, `.xlsm`) para iniciar el proceso de Extracción, Transformación (Polars) y Carga (SQL Server).</p>
+
+        <form id="uploadForm">
+            <input type="file" id="excelFile" name="file" accept=".xlsx,.xlsm,.xls" required>
+            <button type="submit" id="submitBtn">Iniciar Carga ETL</button>
+        </form>
+
+        <div id="spinner" class="spinner"></div>
+        <div id="mensajeResultado" class="mensaje" style="display: none;"></div>
+        <pre id="detalleResultado" style="text-align: left; margin-top: 15px;"></pre>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const mensajeDiv = document.getElementById('mensajeResultado');
+            const detalleDiv = document.getElementById('detalleResultado');
+
+            if (!file) {
+                mensajeDiv.style.display = 'block';
+                mensajeDiv.className = 'mensaje error';
+                mensajeDiv.textContent = 'Por favor, seleccione un archivo.';
+                return;
+            }
+
+            // Deshabilitar botón y mostrar spinner
+            submitBtn.disabled = true;
+            spinner.style.display = 'block';
+            mensajeDiv.style.display = 'none';
+            detalleDiv.textContent = '';
+            
+            // Construir el FormData para enviar el archivo
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Llamada a la API de Python
+            fetch('/upload_and_process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Capturamos el JSON de la respuesta, sea éxito (200) o error (4xx/5xx)
+                return response.json().then(data => ({
+                    status: response.status,
+                    body: data
+                }));
+            })
+            .then(({ status, body }) => {
+                spinner.style.display = 'none';
+                mensajeDiv.style.display = 'block';
+
+                if (status === 200) {
+                    mensajeDiv.className = 'mensaje success';
+                    mensajeDiv.textContent = body.message;
+                    detalleDiv.textContent = `Filas Cargadas: ${body.filas_cargadas}\nServidor: ${body.servidor_sql}\nTabla: ${body.tabla_destino}`;
+                } else {
+                    // Manejo de errores 400 o 500
+                    mensajeDiv.className = 'mensaje error';
+                    mensajeDiv.textContent = `Error ${status}: ${body.detail || body.message}`;
+                }
+            })
+            .catch(error => {
+                spinner.style.display = 'none';
+                mensajeDiv.style.display = 'block';
+                mensajeDiv.className = 'mensaje error';
+                mensajeDiv.textContent = 'Error de conexión: No se pudo alcanzar el servidor API. Verifique que el servicio está activo.';
+                console.error('Fetch error:', error);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
