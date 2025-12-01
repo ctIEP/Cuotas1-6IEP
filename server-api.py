@@ -35,9 +35,22 @@ VALUE_INDICES = [2, 3, 4, 5, 6, 7, 8]
 CSV_FILE_NAME = 'Consolidacion_Final_ETL_v2' # Ya no se usa para la carga a SQL
 
 # --- CONEXIÓN DE BASE DE DATOS (SQLAlchemy) ---
+"""
 CONNECTION_STRING = (
     f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
     f"?driver={SQL_DRIVER.replace(' ', '+')}"
+)
+"""
+
+# Connection String usando secrets
+CONNECTION_STRING = (
+    "DRIVER={ODBC Driver 18 for SQL Server};"
+    f"SERVER={st.secrets['server']};"
+    f"DATABASE={st.secrets['database']};"
+    f"UID={st.secrets['username']};"
+    f"PWD={st.secrets['password']};"
+    "TrustServerCertificate=yes;"
+    "Connection Timeout=30;"
 )
 
 # --- CONFIGURACIÓN DE FASTAPI ---
@@ -169,7 +182,7 @@ def transform_data_unpivot_by_index(
 # ==============================================================================
 # 💾 4. FASE L: CARGA (Pandas/SQLAlchemy a SQL Server)
 # ==============================================================================
-
+"""""
 def load_data_to_sql_server(
     df: pl.DataFrame,
     connection_string: str,
@@ -190,6 +203,58 @@ def load_data_to_sql_server(
     except Exception as e:
         # Esto capturará errores de conexión, driver o SQL
         raise HTTPException(status_code=500, detail=f"Error en la Carga a SQL Server: {e}")
+
+"""
+
+def load_data_to_sql_server(
+    df: pl.DataFrame,
+    connection_string: str,
+    table_name: str
+) -> dict:
+    """Carga datos a SQL Server"""
+    
+    try:
+        # Convertir a Pandas
+        df_pd = df.to_pandas()
+        
+        # Conectar
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+        
+        # Preparar INSERT
+        columns = ", ".join([f"[{col}]" for col in df_pd.columns])
+        placeholders = ", ".join(["?" for _ in df_pd.columns])
+        insert_query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+        
+        # Insertar por lotes
+        cursor.fast_executemany = True
+        cursor.executemany(insert_query, df_pd.values.tolist())
+        conn.commit()
+        
+        rows_inserted = len(df_pd)
+        
+        cursor.close()
+        conn.close()
+        
+        st.success(f"✅ {rows_inserted} filas insertadas en {table_name}")
+        
+        return {
+            "status": "success",
+            "rows_inserted": rows_inserted
+        }
+        
+    except pyodbc.Error as e:
+        error_msg = str(e)
+        st.error(f"❌ Error SQL: {error_msg}")
+        
+        if "Login timeout" in error_msg:
+            st.warning("💡 Verifica que el servidor SQL sea accesible desde internet")
+        elif "Login failed" in error_msg:
+            st.warning("💡 Verifica usuario y contraseña en Secrets")
+        
+        raise
+
+
 
 # ==============================================================================
 # 🌐 5. ENDPOINTS DE LA APLICACIÓN
