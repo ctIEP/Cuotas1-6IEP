@@ -7,3 +7,4 @@ sqlalchemy
 fastapi
 pyodbc
 python-multipart
+uvicorn
