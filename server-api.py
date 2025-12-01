@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from tkinter import messagebox as dialogos # Se mantiene solo para la función de carga
+#from tkinter import messagebox as dialogos # Se mantiene solo para la función de carga
 import io
 import pyodbc # Necesario para la conexión en el servidor
 
@@ -279,6 +279,17 @@ if __name__ == "__main__":
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
+    filename = file_selector()
+    st.write('You selected `%s`' % filename)
+
     print("Servidor Web/API iniciado. Accede a http://<IP_del_Servidor>:8000")
     # Este comando es el que debe estar en tu archivo start_api.bat
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+def file_selector(folder_path='.'):
+    filenames = os.listdir(folder_path)
+    selected_filename = st.selectbox('Select a file', filenames)
+    return os.path.join(folder_path, selected_filename)
+
