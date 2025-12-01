@@ -6,3 +6,4 @@ numpy
 sqlalchemy
 fastapi
 pyodbc
+python-multipart
