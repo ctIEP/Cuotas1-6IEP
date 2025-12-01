@@ -281,12 +281,16 @@ if __name__ == "__main__":
 
     filename = st.file_uploader('Pick a file',accept_multiple_files=True)
 
+    
+
     # 1. Lectura del contenido binario del archivo
     file_content = filename
-    
+    excel_file_stream = io.BytesIO(file_content)
+
+
     # 2. Extracción (E)
     raw_df = extract_excel_data_optimizado(
-        file_content=file_content,
+        file_content=excel_file_stream,
         sheet_names=HOJAS_A_EXTRAER
     )
 
