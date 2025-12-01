@@ -42,15 +42,12 @@ CONNECTION_STRING = (
 )
 """
 
-CONNECTION_STRING= (
-    "DRIVER={ODBC Driver 17 for SQL Server};" 
-    f"SERVER=192.168.50.53,1433;"
-    f"DATABASE=CuotasIEP;"
-    f"UID=FinancieroConsultor;"
-    f"PWD=IEP2025;"
-    # Estas líneas pueden causar problemas si el certificado no es correcto
-    # "Encrypt=yes;" 
-    # "TrustServerCertificate=yes;" 
+CONNECTION_STRING = (
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    f"SERVER={st.secrets['sql_server']['server']};" # Asegúrate que esto lee '192.168.50.53,1433'
+    f"DATABASE={st.secrets['sql_server']['database']};"
+    f"UID={st.secrets['sql_server']['username']};"
+    f"PWD={st.secrets['sql_server']['password']};"
     "Connection Timeout=30;"
 )
 
