@@ -277,11 +277,8 @@ if __name__ == "__main__":
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
-    with st.file_input() as input:
-        if input == None:
-            st.warning('No file selected.')
-        else:
-            file_contents = input.read()
+    filename = st.file_uploader("Pick a file", folder="my_folder", type=("png", "jpg"))
+    st.selectbox('f {filename}')
 
     print("Servidor Web/API iniciado. Accede a http://<IP_del_Servidor>:8000")
     # Este comando es el que debe estar en tu archivo start_api.bat
