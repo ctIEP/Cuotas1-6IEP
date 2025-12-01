@@ -266,6 +266,10 @@ st.write("Accede a http://<IP_del_Servidor>:8000")
 
 
 
+def file_selector(folder_path='.'):
+    filenames = os.listdir(folder_path)
+    selected_filename = st.selectbox('Select a file', filenames)
+    return os.path.join(folder_path, selected_filename)
 
 
 
@@ -288,8 +292,4 @@ if __name__ == "__main__":
 
 
 
-def file_selector(folder_path='.'):
-    filenames = os.listdir(folder_path)
-    selected_filename = st.selectbox('Select a file', filenames)
-    return os.path.join(folder_path, selected_filename)
 
