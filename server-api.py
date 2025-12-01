@@ -277,13 +277,50 @@ if __name__ == "__main__":
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
-    filename = st.file_uploader('Pick a file',accept_multiple_files=True)
-    st.selectbox('f {filename}')
-
-    print("Servidor Web/API iniciado. Accede a http://<IP_del_Servidor>:8000")
-    # Este comando es el que debe estar en tu archivo start_api.bat
-    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
+    try:
+        filename = st.file_uploader('Pick a file',accept_multiple_files=True)
+        st.selectbox(f"{filename}")
+    
+        # 1. Lectura del contenido binario del archivo
+        file_content = filename
+        
+        # 2. Extracción (E)
+        raw_df = extract_excel_data_optimizado(
+            file_content=file_content,
+            sheet_names=HOJAS_A_EXTRAER
+        )
+
+         
+        # 3. Limpieza (C)
+        cleaned_df = clean_data(raw_df)
+        
+        # 4. Transformación (T)
+        final_transformed_df = transform_data_unpivot_by_index(
+            df=cleaned_df,
+            id_col_indices=ID_INDICES,
+            value_col_indices=VALUE_INDICES
+        )
+        
+        final_transformed_df = final_transformed_df.with_columns(pl.lit('Web_API').alias('Origen'))
+        
+        # 5. Carga (L)
+        load_result = load_data_to_sql_server(
+            df=final_transformed_df,
+            connection_string=CONNECTION_STRING,
+            table_name=DB_TABLE
+        )
+        
 
 
+    except HTTPException as e:
+        # Propaga errores HTTP controlados (ej. error de lectura de hoja)
+        raise e
+    except Exception as e:
+        # Captura cualquier otro error
+        raise HTTPException(status_code=500, detail=f"Fallo crítico del proceso ETL: {e}")
+
+
+
+    st.write("Proceso Completado")
