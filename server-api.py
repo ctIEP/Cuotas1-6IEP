@@ -50,45 +50,40 @@ templates = Jinja2Templates(directory="templates")
 # ==============================================================================
 
 def extract_excel_data_optimizado(
-    file_content: bytes, # Recibe el contenido binario del archivo subido
+    file_content,  # Lo que sea que venga
     sheet_names: List[str]
 ) -> pl.DataFrame:
     
     datos = []
     
-    # Usamos io.BytesIO para que pandas pueda leer el archivo directamente de la memoria.
-    excel_file_stream = io.BytesIO(file_content)
-    
     for hoja in sheet_names:
         try:
-            # Leer hoja con pandas (el motor 'openpyxl' es esencial)
-            df_pd = pd.read_excel(excel_file_stream, sheet_name=hoja, header=None, engine="openpyxl")
+            # pandas se encarga de TODO, no importa si es bytes, BytesIO, o lo que sea
+            df_pd = pd.read_excel(
+                file_content,  # Pasalo directo, pandas lo maneja
+                sheet_name=hoja, 
+                header=None, 
+                engine="openpyxl"
+            )
+            
             df_pd = df_pd.astype(str)
+            df = pl.from_pandas(df_pd).cast(pl.Utf8)
             
-            df = pl.from_pandas(df_pd)
-            df = df.cast(pl.Utf8) # Convertir TODO a texto
+            # Extraer B1
+            valorb1 = df[0, 1] if df.height > 0 and df.width > 1 else None
             
-            # Extraer B1 (posición [0, 1] en Excel, que es [0, 0] en df si header=None)
-            valorb1 = df[0, 0] if df.height > 1 and df.width > 1 else None
-            
-            # Seleccionar primeras 32 columnas por posición
-            df_subset = df[:, :32].with_columns(
+            # Primeras 32 columnas
+            df_subset = df[:, :min(32, df.width)].with_columns(
                 pl.lit(valorb1).alias("FechaAnalisis")
             )
             
             datos.append(df_subset)
         
         except Exception as e:
-            # Levantamos una excepción HTTP si una hoja crítica falla
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Error al leer la hoja '{hoja}'. Detalle: {e}"
-            )
+            st.error(f"Error en hoja '{hoja}': {e}")
+            continue
 
-    if datos:
-        return pl.concat(datos)
-    else:
-        return pl.DataFrame()
+    return pl.concat(datos, how="diagonal") if datos else pl.DataFrame()
 
 # ==============================================================================
 # 🧹 2. FASE C: LIMPIEZA (Polars)
@@ -280,9 +275,11 @@ if __name__ == "__main__":
     uploaded_file = st.file_uploader('Pick a file', accept_multiple_files=False)
 
     if uploaded_file is not None:
-        # 1. Lectura del contenido binario del archivo
-        file_content = uploaded_file.read()
-        excel_file_stream = io.BytesIO(file_content)
+        # Pasalo DIRECTO, sin .read() ni nada
+        raw_df = extract_excel_data_optimizado(
+            file_content=uploaded_file,  # Así de simple
+            sheet_names=HOJAS_A_EXTRAER
+        )
 
         # 2. Extracción (E)
         raw_df = extract_excel_data_optimizado(
