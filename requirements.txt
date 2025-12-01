@@ -8,3 +8,4 @@ fastapi
 pyodbc
 python-multipart
 uvicorn
+openpyxl
