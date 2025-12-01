@@ -42,15 +42,15 @@ CONNECTION_STRING = (
 )
 """
 
-# Connection String usando secrets
-CONNECTION_STRING = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"  # ← Volver a 17
-    f"SERVER={st.secrets['server']};"
-    f"DATABASE={st.secrets['database']};"
-    f"UID={st.secrets['username']};"
-    f"PWD={st.secrets['password']};"
-    "Encrypt=yes;"
-    "TrustServerCertificate=yes;"
+CONNECTION_STRING= (
+    "DRIVER={ODBC Driver 17 for SQL Server};" 
+    f"SERVER=192.168.50.53,1433;"
+    f"DATABASE=CuotasIEP;"
+    f"UID=FinancieroConsultor;"
+    f"PWD=IEP2025;"
+    # Estas líneas pueden causar problemas si el certificado no es correcto
+    # "Encrypt=yes;" 
+    # "TrustServerCertificate=yes;" 
     "Connection Timeout=30;"
 )
 
