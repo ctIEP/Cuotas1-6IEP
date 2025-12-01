@@ -5,3 +5,4 @@ seaborn
 numpy
 sqlalchemy
 fastapi
+pyodbc
