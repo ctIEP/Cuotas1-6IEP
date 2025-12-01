@@ -277,7 +277,7 @@ if __name__ == "__main__":
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
-    filename = st.file_uploader("Pick a file", folder="my_folder", type=("png", "jpg"))
+    filename = st.file_uploader('Pick a file',accept_multiple_files=True)
     st.selectbox('f {filename}')
 
     print("Servidor Web/API iniciado. Accede a http://<IP_del_Servidor>:8000")
