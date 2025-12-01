@@ -3,3 +3,4 @@ polars
 matplotlib
 seaborn
 numpy
+sqlalchemy
