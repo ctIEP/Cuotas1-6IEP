@@ -261,7 +261,6 @@ st.write("Accede a http://<IP_del_Servidor>:8000")
 
 
 
-
 # ==============================================================================
 # 🚀 6. INICIO DEL SERVIDOR (Uvicorn)
 # ==============================================================================
@@ -271,19 +270,14 @@ if __name__ == "__main__":
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
-    # Cambiar a accept_multiple_files=False
+    # File uploader
     uploaded_file = st.file_uploader('Pick a file', accept_multiple_files=False)
 
     if uploaded_file is not None:
-        # Pasalo DIRECTO, sin .read() ni nada
+        
+        # 2. Extracción (E) - SOLO UNA VEZ
         raw_df = extract_excel_data_optimizado(
-            file_content=uploaded_file,  # Así de simple
-            sheet_names=HOJAS_A_EXTRAER
-        )
-
-        # 2. Extracción (E)
-        raw_df = extract_excel_data_optimizado(
-            file_content=excel_file_stream,
+            file_content=uploaded_file,  # Pasalo directo
             sheet_names=HOJAS_A_EXTRAER
         )
         
