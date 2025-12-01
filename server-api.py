@@ -44,11 +44,12 @@ CONNECTION_STRING = (
 
 # Connection String usando secrets
 CONNECTION_STRING = (
-    "DRIVER={ODBC Driver 18 for SQL Server};"
+    "DRIVER={ODBC Driver 17 for SQL Server};"  # ← Volver a 17
     f"SERVER={st.secrets['server']};"
     f"DATABASE={st.secrets['database']};"
     f"UID={st.secrets['username']};"
     f"PWD={st.secrets['password']};"
+    "Encrypt=yes;"
     "TrustServerCertificate=yes;"
     "Connection Timeout=30;"
 )
