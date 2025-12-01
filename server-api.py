@@ -273,47 +273,44 @@ st.write("Accede a http://<IP_del_Servidor>:8000")
 if __name__ == "__main__":
     import uvicorn
 
-
     st.title("Servidor Web/API iniciado")
     st.write("Accede a http://<IP_del_Servidor>:8000")
 
+    # Cambiar a accept_multiple_files=False
+    uploaded_file = st.file_uploader('Pick a file', accept_multiple_files=False)
 
+    if uploaded_file is not None:
+        # 1. Lectura del contenido binario del archivo
+        file_content = uploaded_file.read()
+        excel_file_stream = io.BytesIO(file_content)
 
-    filename = st.file_uploader('Pick a file',accept_multiple_files=True)
-
-    
-
-    # 1. Lectura del contenido binario del archivo
-    file_content = filename
-    excel_file_stream = io.BytesIO(file_content)
-
-
-    # 2. Extracción (E)
-    raw_df = extract_excel_data_optimizado(
-        file_content=excel_file_stream,
-        sheet_names=HOJAS_A_EXTRAER
-    )
-
+        # 2. Extracción (E)
+        raw_df = extract_excel_data_optimizado(
+            file_content=excel_file_stream,
+            sheet_names=HOJAS_A_EXTRAER
+        )
         
-    # 3. Limpieza (C)
-    cleaned_df = clean_data(raw_df)
-    
-    # 4. Transformación (T)
-    final_transformed_df = transform_data_unpivot_by_index(
-        df=cleaned_df,
-        id_col_indices=ID_INDICES,
-        value_col_indices=VALUE_INDICES
-    )
-    
-    final_transformed_df = final_transformed_df.with_columns(pl.lit('Web_API').alias('Origen'))
-    
-    # 5. Carga (L)
-    load_result = load_data_to_sql_server(
-        df=final_transformed_df,
-        connection_string=CONNECTION_STRING,
-        table_name=DB_TABLE
-    )
-    
-    #final message
-
-    st.write("Proceso Completado")
+        # 3. Limpieza (C)
+        cleaned_df = clean_data(raw_df)
+        
+        # 4. Transformación (T)
+        final_transformed_df = transform_data_unpivot_by_index(
+            df=cleaned_df,
+            id_col_indices=ID_INDICES,
+            value_col_indices=VALUE_INDICES
+        )
+        
+        final_transformed_df = final_transformed_df.with_columns(
+            pl.lit('Web_API').alias('Origen')
+        )
+        
+        # 5. Carga (L)
+        load_result = load_data_to_sql_server(
+            df=final_transformed_df,
+            connection_string=CONNECTION_STRING,
+            table_name=DB_TABLE
+        )
+        
+        st.success("✅ Proceso Completado")
+    else:
+        st.info("⏳ Esperando archivo...")
