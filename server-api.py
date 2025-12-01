@@ -280,7 +280,6 @@ if __name__ == "__main__":
 
 
     filename = st.file_uploader('Pick a file',accept_multiple_files=True)
-    st.selectbox(f"{filename}")
 
     # 1. Lectura del contenido binario del archivo
     file_content = filename
