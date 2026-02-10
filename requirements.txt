@@ -1,11 +1,8 @@
-pandas
-polars
-matplotlib
-seaborn
-numpy
-sqlalchemy
 fastapi
-pyodbc
-python-multipart
 uvicorn
+polars
+pandas
 openpyxl
+jinja2
+python-multipart
+pyodbc
